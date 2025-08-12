@@ -8,13 +8,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Filament\Models\Contracts\FilamentUser;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class Agency extends Authenticatable implements FilamentUser
+class Admin extends Authenticatable implements FilamentUser
 {
     public function canAccessPanel(\Filament\Panel $panel): bool
     {
         return true; // Add role checks if needed
     }
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $guarded = [];
 
