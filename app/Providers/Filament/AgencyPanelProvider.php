@@ -26,6 +26,7 @@ class AgencyPanelProvider extends PanelProvider
             ->default()
             ->id('agency')
             ->path('agency')
+            ->brandName('My Property Status - Agency')
             ->login()
             ->authGuard('agency')
             ->colors([
