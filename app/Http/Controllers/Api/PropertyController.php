@@ -28,14 +28,7 @@ class PropertyController extends Controller
             $query->where('price', '<=', $request->max_price);
         }
 
-/*         if ($request->filled('bedrooms')) {
-            $query->where('bedrooms', $request->bedrooms);
-        }
-
-        if ($request->filled('bathrooms')) {
-            $query->where('bathrooms', $request->bathrooms);
-        }
-
+/*     
         if ($request->filled('agency_id')) {
             $query->where('agency_id', $request->agency_id);
         } */
