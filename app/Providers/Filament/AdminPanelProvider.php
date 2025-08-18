@@ -26,6 +26,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+            ->brandName('My Property Status - Admin')
             ->login()
             ->authGuard('admin')
             ->colors([

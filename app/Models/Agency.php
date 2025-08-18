@@ -23,11 +23,7 @@ class Agency extends Authenticatable implements FilamentUser
      *
      * @var list<string>
      */
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-    ];
+    protected $fillable = ['name', 'email', 'phone', 'password'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -44,9 +40,7 @@ class Agency extends Authenticatable implements FilamentUser
     // Automatically hash password on set
     public function setPasswordAttribute($value)
     {
-        if ($value) {
-            $this->attributes['password'] = bcrypt($value);
-        }
+       if ($value) $this->attributes['password'] = bcrypt($value);
     }
 
     public function listings()

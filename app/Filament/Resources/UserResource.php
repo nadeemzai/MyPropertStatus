@@ -21,17 +21,27 @@ class UserResource extends Resource
 
     public static function form(Form $form): Form
     {
-        return $form
-            ->schema([
-                //
-            ]);
+        return $form->schema([
+            Forms\Components\TextInput::make('name')->required()->maxLength(255),
+            Forms\Components\TextInput::make('email')->email()->required()->maxLength(255),
+            Forms\Components\TextInput::make('phone')->maxLength(50),
+            Forms\Components\TextInput::make('password')
+                ->password()
+                ->dehydrateStateUsing(fn ($state) => filled($state) ? bcrypt($state) : null)
+                ->dehydrated(fn ($state) => filled($state)) // only save if provided
+                ->maxLength(255),
+        ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                //
+                Tables\Columns\TextColumn::make('id')->sortable(),
+                Tables\Columns\TextColumn::make('name')->searchable(),
+                Tables\Columns\TextColumn::make('email')->searchable(),
+                Tables\Columns\TextColumn::make('phone'),
+                Tables\Columns\TextColumn::make('created_at')->dateTime(),
             ])
             ->filters([
                 //
