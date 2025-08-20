@@ -15,6 +15,7 @@ return new class extends Migration
             $table->string('email')->unique()->nullable();
             $table->string('phone')->unique();
             $table->timestamp('phone_verified_at')->nullable();
+            $table->timestamp('email_verified_at')->nullable();
             $table->string('password')->nullable();
             $table->enum('status', array_column(UserStatus::cases(), 'value'))
               ->default(UserStatus::ACTIVE->value);
