@@ -1,0 +1,461 @@
+{
+  "info": {
+    "name": "MyPropertyStatus API",
+    "_postman_id": "9f2a6b3e-6c1a-4a5a-9b1e-mypropertystatus001",
+    "description": "Full API collection for MyPropertyStatus (property rent/sale platform). Covers user auth, property CRUD + media, agency-proposed listings with owner approval, agency-to-owner connections, notifications, and support tickets.\n\nSetup:\n1. Set `base_url` (e.g. http://127.0.0.1:8000/api).\n2. Run Auth > Register or Login, then copy the returned `token` into the `user_token` variable (or use the built-in test script below, which does this automatically).\n3. For agency-side requests, set `agency_api_key` to a value from the `agency_api_keys` table (seeded, or create one via tinker).\n4. Run requests top to bottom within a folder — later requests reuse ids captured from earlier ones via collection variables.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{user_token}}", "type": "string" }]
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8000/api" },
+    { "key": "user_token", "value": "" },
+    { "key": "other_user_token", "value": "" },
+    { "key": "agency_api_key", "value": "" },
+    { "key": "property_id", "value": "" },
+    { "key": "listing_id", "value": "" },
+    { "key": "connection_id", "value": "" },
+    { "key": "media_id", "value": "" },
+    { "key": "notification_id", "value": "" },
+    { "key": "support_ticket_id", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"testuser+{{$randomInt}}@example.com\",\n  \"password\": \"secret123\",\n  \"phone\": \"+9230012345{{$randomInt}}\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/register", "host": ["{{base_url}}"], "path": ["register"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "if (pm.response.code === 200 || pm.response.code === 201) {",
+              "  const body = pm.response.json();",
+              "  if (body.token) { pm.collectionVariables.set('user_token', body.token); }",
+              "}"
+            ]}
+          }]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"email\": \"testuser@example.com\",\n  \"password\": \"secret123\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/login", "host": ["{{base_url}}"], "path": ["login"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "if (pm.response.code === 200) {",
+              "  const body = pm.response.json();",
+              "  if (body.token) { pm.collectionVariables.set('user_token', body.token); }",
+              "}"
+            ]}
+          }]
+        },
+        {
+          "name": "Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/profile", "host": ["{{base_url}}"], "path": ["profile"] }
+          }
+        },
+        {
+          "name": "Current User (/user)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/user", "host": ["{{base_url}}"], "path": ["user"] }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/logout", "host": ["{{base_url}}"], "path": ["logout"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Properties",
+      "item": [
+        {
+          "name": "List Properties (filters: location, min_price, max_price, agency_id, type)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/properties?location=&min_price=&max_price=&type=",
+              "host": ["{{base_url}}"], "path": ["properties"],
+              "query": [
+                { "key": "location", "value": "" },
+                { "key": "min_price", "value": "" },
+                { "key": "max_price", "value": "" },
+                { "key": "type", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Property",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"title\": \"3 Bed House in DHA\",\n  \"description\": \"Spacious family home\",\n  \"type\": \"house\",\n  \"currency\": \"PKR\",\n  \"price\": 25000000,\n  \"location\": \"DHA Phase 6, Lahore\",\n  \"details\": { \"bedrooms\": 3, \"bathrooms\": 2, \"area_sqft\": 2200 }\n}"
+            },
+            "url": { "raw": "{{base_url}}/properties", "host": ["{{base_url}}"], "path": ["properties"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "if (pm.response.code === 201) {",
+              "  const body = pm.response.json();",
+              "  pm.collectionVariables.set('property_id', body.id);",
+              "}"
+            ]}
+          }]
+        },
+        {
+          "name": "Show Property",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/properties/{{property_id}}", "host": ["{{base_url}}"], "path": ["properties", "{{property_id}}"] }
+          }
+        },
+        {
+          "name": "Update Property",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"price\": 26000000,\n  \"status\": \"published\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/properties/{{property_id}}", "host": ["{{base_url}}"], "path": ["properties", "{{property_id}}"] }
+          }
+        },
+        {
+          "name": "Delete Property",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/properties/{{property_id}}", "host": ["{{base_url}}"], "path": ["properties", "{{property_id}}"] }
+          }
+        },
+        {
+          "name": "List Property Media",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/properties/{{property_id}}/media", "host": ["{{base_url}}"], "path": ["properties", "{{property_id}}", "media"] }
+          }
+        },
+        {
+          "name": "Upload Property Media",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": "" },
+                { "key": "caption", "value": "Front view", "type": "text" },
+                { "key": "sort_order", "value": "0", "type": "text" }
+              ]
+            },
+            "url": { "raw": "{{base_url}}/properties/{{property_id}}/media", "host": ["{{base_url}}"], "path": ["properties", "{{property_id}}", "media"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "if (pm.response.code === 201) {",
+              "  const body = pm.response.json();",
+              "  pm.collectionVariables.set('media_id', body.id);",
+              "}"
+            ]}
+          }]
+        },
+        {
+          "name": "Delete Property Media",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/properties/{{property_id}}/media/{{media_id}}", "host": ["{{base_url}}"], "path": ["properties", "{{property_id}}", "media", "{{media_id}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Listings (Property Owner)",
+      "item": [
+        {
+          "name": "List My Listings (filter: status)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/listings?status=pending",
+              "host": ["{{base_url}}"], "path": ["listings"],
+              "query": [{ "key": "status", "value": "pending" }]
+            }
+          }
+        },
+        {
+          "name": "Approve Listing",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/listings/{{listing_id}}/approve", "host": ["{{base_url}}"], "path": ["listings", "{{listing_id}}", "approve"] }
+          }
+        },
+        {
+          "name": "Reject Listing",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/listings/{{listing_id}}/reject", "host": ["{{base_url}}"], "path": ["listings", "{{listing_id}}", "reject"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Listings (Agency)",
+      "item": [
+        {
+          "name": "Propose Listing",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "X-Agency-Api-Key", "value": "{{agency_api_key}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"property_id\": {{property_id}},\n  \"agency_notes\": \"We have a buyer interested.\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/agency/listings", "host": ["{{base_url}}"], "path": ["agency", "listings"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "if (pm.response.code === 201) {",
+              "  const body = pm.response.json();",
+              "  pm.collectionVariables.set('listing_id', body.id);",
+              "}"
+            ]}
+          }]
+        },
+        {
+          "name": "Update Listing Status (requires owner approval first)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "PATCH",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "X-Agency-Api-Key", "value": "{{agency_api_key}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"status\": \"sold\",\n  \"reason\": \"Buyer found\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/agency/listings/{{listing_id}}/status", "host": ["{{base_url}}"], "path": ["agency", "listings", "{{listing_id}}", "status"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Connections (Property Owner)",
+      "item": [
+        {
+          "name": "List Connections Aimed at My Properties (filter: status)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/connections?status=pending",
+              "host": ["{{base_url}}"], "path": ["connections"],
+              "query": [{ "key": "status", "value": "pending" }]
+            }
+          }
+        },
+        {
+          "name": "Accept Connection",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/connections/{{connection_id}}/accept", "host": ["{{base_url}}"], "path": ["connections", "{{connection_id}}", "accept"] }
+          }
+        },
+        {
+          "name": "Reject Connection",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/connections/{{connection_id}}/reject", "host": ["{{base_url}}"], "path": ["connections", "{{connection_id}}", "reject"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Connections (Agency)",
+      "item": [
+        {
+          "name": "List My Initiated Connections",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "X-Agency-Api-Key", "value": "{{agency_api_key}}" }
+            ],
+            "url": { "raw": "{{base_url}}/agency/connections", "host": ["{{base_url}}"], "path": ["agency", "connections"] }
+          }
+        },
+        {
+          "name": "Initiate Connection (by property_id)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "X-Agency-Api-Key", "value": "{{agency_api_key}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"property_id\": {{property_id}},\n  \"message\": \"We have a buyer interested in your property.\",\n  \"expires_at\": null\n}"
+            },
+            "url": { "raw": "{{base_url}}/agency/connections", "host": ["{{base_url}}"], "path": ["agency", "connections"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "if (pm.response.code === 201) {",
+              "  const body = pm.response.json();",
+              "  pm.collectionVariables.set('connection_id', body.id);",
+              "}"
+            ]}
+          }]
+        },
+        {
+          "name": "Initiate Connection (by target_phone lead)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "X-Agency-Api-Key", "value": "{{agency_api_key}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"target_phone\": \"+923001112233\",\n  \"message\": \"Are you interested in selling your property?\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/agency/connections", "host": ["{{base_url}}"], "path": ["agency", "connections"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "List Notifications (filter: is_read)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/notifications?is_read=0",
+              "host": ["{{base_url}}"], "path": ["notifications"],
+              "query": [{ "key": "is_read", "value": "0" }]
+            }
+          }
+        },
+        {
+          "name": "Mark Notification Read",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/notifications/{{notification_id}}/read", "host": ["{{base_url}}"], "path": ["notifications", "{{notification_id}}", "read"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Support Tickets",
+      "item": [
+        {
+          "name": "List My Support Tickets (filter: status)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/support-tickets?status=open",
+              "host": ["{{base_url}}"], "path": ["support-tickets"],
+              "query": [{ "key": "status", "value": "open" }]
+            }
+          }
+        },
+        {
+          "name": "Create Support Ticket",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"subject\": \"Can't upload property photos\",\n  \"message\": \"The upload button doesn't respond on the property edit page.\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/support-tickets", "host": ["{{base_url}}"], "path": ["support-tickets"] }
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "if (pm.response.code === 201) {",
+              "  const body = pm.response.json();",
+              "  pm.collectionVariables.set('support_ticket_id', body.id);",
+              "}"
+            ]}
+          }]
+        },
+        {
+          "name": "Show Support Ticket",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/support-tickets/{{support_ticket_id}}", "host": ["{{base_url}}"], "path": ["support-tickets", "{{support_ticket_id}}"] }
+          }
+        }
+      ]
+    }
+  ]
+}

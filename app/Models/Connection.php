@@ -12,6 +12,13 @@ class Connection extends Model
 
     protected $guarded = [];
 
+    protected function casts(): array
+    {
+        return [
+            'expires_at' => 'datetime',
+        ];
+    }
+
     public function agency()
     {
         return $this->belongsTo(Agency::class);
