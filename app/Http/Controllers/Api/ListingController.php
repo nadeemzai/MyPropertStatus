@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exceptions\ListingActionException;
 use App\Http\Controllers\Controller;
 use App\Models\Listing;
-use App\Models\Property;
+use App\Services\ListingService;
 use Illuminate\Http\Request;
 
 class ListingController extends Controller
 {
+    public function __construct(private ListingService $listings)
+    {
+    }
+
     /**
      * List listings on properties owned by the authenticated user.
      */
@@ -32,30 +37,20 @@ class ListingController extends Controller
      */
     public function store(Request $request)
     {
-        $agency = $request->user();
-
         $validated = $request->validate([
             'property_id' => 'required|integer|exists:properties,id',
             'agency_notes' => 'nullable|string',
         ]);
 
-        $exists = Listing::where('property_id', $validated['property_id'])
-            ->where('agency_id', $agency->id)
-            ->exists();
-
-        if ($exists) {
-            return response()->json([
-                'message' => 'A listing for this property already exists for your agency.',
-            ], 409);
+        try {
+            $listing = $this->listings->propose(
+                $request->user(),
+                $validated['property_id'],
+                $validated['agency_notes'] ?? null
+            );
+        } catch (ListingActionException $e) {
+            return response()->json(['message' => $e->getMessage()], $e->status);
         }
-
-        $listing = Listing::create([
-            'property_id' => $validated['property_id'],
-            'agency_id' => $agency->id,
-            'status' => 'pending',
-            'agency_proposed' => true,
-            'agency_notes' => $validated['agency_notes'] ?? null,
-        ]);
 
         return response()->json($listing, 201);
     }
@@ -65,34 +60,23 @@ class ListingController extends Controller
      */
     public function updateStatus(Request $request, $id)
     {
-        $agency = $request->user();
         $listing = Listing::findOrFail($id);
-
-        if ($listing->agency_id !== $agency->id) {
-            abort(403, 'You do not own this listing.');
-        }
-
-        if (! $listing->user_approved) {
-            return response()->json([
-                'message' => 'This listing has not been approved by the property owner yet.',
-            ], 403);
-        }
 
         $validated = $request->validate([
             'status' => 'required|in:available,rented,sold,archived',
             'reason' => 'nullable|string',
         ]);
 
-        $fromStatus = $listing->status;
-
-        $listing->update(['status' => $validated['status']]);
-
-        $listing->statusHistories()->create([
-            'from_status' => $fromStatus,
-            'to_status' => $validated['status'],
-            'changed_by_agency_id' => $agency->id,
-            'reason' => $validated['reason'] ?? null,
-        ]);
+        try {
+            $listing = $this->listings->updateStatus(
+                $listing,
+                $request->user(),
+                $validated['status'],
+                $validated['reason'] ?? null
+            );
+        } catch (ListingActionException $e) {
+            return response()->json(['message' => $e->getMessage()], $e->status);
+        }
 
         return response()->json($listing);
     }

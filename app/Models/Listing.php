@@ -12,6 +12,16 @@ class Listing extends Model
 
     protected $guarded = [];
 
+    protected function casts(): array
+    {
+        return [
+            'agency_proposed' => 'boolean',
+            'user_approved' => 'boolean',
+            'approved_at' => 'datetime',
+            'meta' => 'array',
+        ];
+    }
+
     public function property()
     {
         return $this->belongsTo(Property::class);
