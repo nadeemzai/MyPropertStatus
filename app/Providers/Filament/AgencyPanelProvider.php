@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Agency\Pages\EditProfile;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -28,6 +29,7 @@ class AgencyPanelProvider extends PanelProvider
             ->path('agency')
             ->brandName('My Property Status - Agency')
             ->login()
+            ->profile(EditProfile::class)
             ->authGuard('agency')
             ->colors([
                 'primary' => '#2563eb',
