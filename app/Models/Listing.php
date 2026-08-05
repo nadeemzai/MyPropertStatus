@@ -10,27 +10,17 @@ class Listing extends Model
 {
     use HasFactory, SoftDeletes;
 
-     use HasFactory, SoftDeletes;
-
-    protected $fillable = [
-        'property_id',
-        'agency_id',
-        'status',
-        'agency_proposed',
-        'user_approved',
-        'approved_at',
-        'agency_notes',
-        'meta',
-    ];
-
-    protected $casts = [
-        'agency_proposed' => 'boolean',
-        'user_approved' => 'boolean',
-        'approved_at' => 'datetime',
-        'meta' => 'array',
-    ];
-
     protected $guarded = [];
+
+    protected function casts(): array
+    {
+        return [
+            'agency_proposed' => 'boolean',
+            'user_approved' => 'boolean',
+            'approved_at' => 'datetime',
+            'meta' => 'array',
+        ];
+    }
 
     public function property()
     {
