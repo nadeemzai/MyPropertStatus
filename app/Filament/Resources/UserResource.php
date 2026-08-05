@@ -27,7 +27,8 @@ class UserResource extends Resource
             Forms\Components\TextInput::make('phone')->maxLength(50),
             Forms\Components\TextInput::make('password')
                 ->password()
-                ->dehydrateStateUsing(fn ($state) => filled($state) ? bcrypt($state) : null)
+                // User's 'password' => 'hashed' cast already hashes on save - hashing
+                // here too would double-hash and lock the user out.
                 ->dehydrated(fn ($state) => filled($state)) // only save if provided
                 ->maxLength(255),
         ]);
