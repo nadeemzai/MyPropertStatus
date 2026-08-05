@@ -157,13 +157,6 @@
       0 => 'Pest\\Laravel\\PestServiceProvider',
     ),
   ),
-  'recca0120/laravel-erd' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'Recca0120\\LaravelErd\\LaravelErdServiceProvider',
-    ),
-  ),
   'ryangjchandler/blade-capture-directive' => 
   array (
     'aliases' => 
