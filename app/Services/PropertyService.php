@@ -19,13 +19,12 @@ class PropertyService
     }
 
     /**
-     * Base query for a user's own properties, any status.
+     * Base query for a user's own properties, any status. Callers should
+     * eager-load whichever relations their view actually needs.
      */
     public function mine(User $user): Builder
     {
-        return Property::query()
-            ->where('user_id', $user->id)
-            ->with(['listings.agency', 'media']);
+        return Property::query()->where('user_id', $user->id);
     }
 
     /**

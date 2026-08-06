@@ -40,6 +40,7 @@ class PropertyController extends Controller
     public function mine(Request $request)
     {
         $properties = $this->properties->mine($request->user())
+            ->with(['listings.agency', 'media'])
             ->latest()
             ->paginate(10);
 
