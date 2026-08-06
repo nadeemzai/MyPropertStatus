@@ -9,11 +9,11 @@ use Illuminate\Http\Request;
 class PropertyController extends Controller
 {
     /**
-     * List properties with filters & pagination.
+     * List published properties with filters & pagination. Public.
      */
     public function index(Request $request)
     {
-        $query = Property::query();
+        $query = Property::query()->where('status', 'published');
 
         // Filtering
         if ($request->filled('location')) {
@@ -44,13 +44,28 @@ class PropertyController extends Controller
     }
 
     /**
-     * Show property details.
+     * Show a published property's details. Public.
      */
     public function show($id)
     {
-        $property = Property::with(['listings.agency', 'media'])->findOrFail($id);
+        $property = Property::where('status', 'published')
+            ->with(['listings.agency', 'media'])
+            ->findOrFail($id);
 
         return response()->json($property);
+    }
+
+    /**
+     * List the authenticated user's own properties, any status.
+     */
+    public function mine(Request $request)
+    {
+        $properties = $request->user()->properties()
+            ->with(['listings.agency', 'media'])
+            ->latest()
+            ->paginate(10);
+
+        return response()->json($properties);
     }
 
     /**

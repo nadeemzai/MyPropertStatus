@@ -11,11 +11,11 @@ use Illuminate\Support\Facades\Storage;
 class PropertyMediaController extends Controller
 {
     /**
-     * List media for a property.
+     * List media for a published property. Public.
      */
     public function index($propertyId)
     {
-        $property = Property::findOrFail($propertyId);
+        $property = Property::where('status', 'published')->findOrFail($propertyId);
 
         $media = $property->media()->orderBy('sort_order')->get();
 
