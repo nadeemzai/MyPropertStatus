@@ -46,11 +46,10 @@
     42 => 'Termwind\\Laravel\\TermwindServiceProvider',
     43 => 'Pest\\Laravel\\PestServiceProvider',
     44 => 'RyanChandler\\BladeCaptureDirective\\BladeCaptureDirectiveServiceProvider',
-    45 => 'Spatie\\Permission\\PermissionServiceProvider',
-    46 => 'Spatie\\QueryBuilder\\QueryBuilderServiceProvider',
-    47 => 'App\\Providers\\AppServiceProvider',
-    48 => 'App\\Providers\\Filament\\AdminPanelProvider',
-    49 => 'App\\Providers\\Filament\\AgencyPanelProvider',
+    45 => 'Spatie\\QueryBuilder\\QueryBuilderServiceProvider',
+    46 => 'App\\Providers\\AppServiceProvider',
+    47 => 'App\\Providers\\Filament\\AdminPanelProvider',
+    48 => 'App\\Providers\\Filament\\AgencyPanelProvider',
   ),
   'eager' => 
   array (
@@ -83,11 +82,10 @@
     26 => 'Termwind\\Laravel\\TermwindServiceProvider',
     27 => 'Pest\\Laravel\\PestServiceProvider',
     28 => 'RyanChandler\\BladeCaptureDirective\\BladeCaptureDirectiveServiceProvider',
-    29 => 'Spatie\\Permission\\PermissionServiceProvider',
-    30 => 'Spatie\\QueryBuilder\\QueryBuilderServiceProvider',
-    31 => 'App\\Providers\\AppServiceProvider',
-    32 => 'App\\Providers\\Filament\\AdminPanelProvider',
-    33 => 'App\\Providers\\Filament\\AgencyPanelProvider',
+    29 => 'Spatie\\QueryBuilder\\QueryBuilderServiceProvider',
+    30 => 'App\\Providers\\AppServiceProvider',
+    31 => 'App\\Providers\\Filament\\AdminPanelProvider',
+    32 => 'App\\Providers\\Filament\\AgencyPanelProvider',
   ),
   'deferred' => 
   array (
