@@ -4,43 +4,24 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Property;
+use App\Services\PropertyService;
 use Illuminate\Http\Request;
 
 class PropertyController extends Controller
 {
+    public function __construct(private PropertyService $properties) {}
+
     /**
      * List published properties with filters & pagination. Public.
      */
     public function index(Request $request)
     {
-        $query = Property::query()->where('status', 'published');
+        $query = $this->properties->filter(
+            $this->properties->published(),
+            $request->only(['location', 'min_price', 'max_price', 'agency_id', 'type'])
+        );
 
-        // Filtering
-        if ($request->filled('location')) {
-            $query->where('location', 'like', '%' . $request->location . '%');
-        }
-
-        if ($request->filled('min_price')) {
-            $query->where('price', '>=', $request->min_price);
-        }
-
-        if ($request->filled('max_price')) {
-            $query->where('price', '<=', $request->max_price);
-        }
-
-        if ($request->filled('agency_id')) {
-            $query->whereHas('listings', function ($q) use ($request) {
-                $q->where('agency_id', $request->agency_id);
-            });
-        }
-
-        if ($request->filled('type')) {
-            $query->where('type', $request->type);
-        }
-
-        $properties = $query->with(['listings.agency', 'media'])->paginate(10);
-
-        return response()->json($properties);
+        return response()->json($query->paginate(10));
     }
 
     /**
@@ -48,9 +29,7 @@ class PropertyController extends Controller
      */
     public function show($id)
     {
-        $property = Property::where('status', 'published')
-            ->with(['listings.agency', 'media'])
-            ->findOrFail($id);
+        $property = $this->properties->published()->findOrFail($id);
 
         return response()->json($property);
     }
