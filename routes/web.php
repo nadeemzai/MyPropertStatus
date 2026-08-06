@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Dashboard;
+use App\Livewire\Dashboard\MyListings;
 use App\Livewire\Dashboard\MyProperties;
 use App\Livewire\Dashboard\PropertyForm;
 use App\Livewire\Public\Browse;
@@ -16,6 +17,7 @@ Route::middleware('auth')->prefix('dashboard')->name('dashboard.')->group(functi
     Route::get('/properties', MyProperties::class)->name('properties.index');
     Route::get('/properties/create', PropertyForm::class)->name('properties.create');
     Route::get('/properties/{id}/edit', PropertyForm::class)->name('properties.edit');
+    Route::get('/listings', MyListings::class)->name('listings.index');
 });
 
 Route::get('/dashboard', Dashboard::class)
