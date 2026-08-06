@@ -17,6 +17,7 @@ class Property extends Model
         return [
             'details' => 'array',
             'price' => 'decimal:2',
+            'available_from' => 'date',
         ];
     }
 
