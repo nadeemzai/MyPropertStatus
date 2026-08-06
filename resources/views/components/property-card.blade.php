@@ -1,6 +1,6 @@
 @props(['property'])
 
-<article class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+<a href="{{ route('properties.show', $property->id) }}" class="block overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition hover:border-green-700 hover:shadow-md">
     <div class="aspect-video bg-gray-100">
         @php($image = $property->media->firstWhere('type', 'image'))
         @if ($image)
@@ -28,25 +28,14 @@
         @endif
 
         <p class="text-lg font-semibold text-gray-900">
-            @if ($property->price)
-                {{ $property->currency ?? 'PKR' }} {{ number_format($property->price) }}
-            @else
-                Price on request
-            @endif
+            <x-property-price :property="$property" />
         </p>
 
-        @php($details = collect([
-            isset($property->details['bedrooms']) ? $property->details['bedrooms'].' bed' : null,
-            isset($property->details['bathrooms']) ? $property->details['bathrooms'].' bath' : null,
-            isset($property->details['area_sqft']) ? $property->details['area_sqft'].' sqft' : null,
-        ])->filter())
-        @if ($details->isNotEmpty())
-            <p class="text-sm text-gray-500">{{ $details->join(' · ') }}</p>
-        @endif
+        <x-property-details-summary :property="$property" />
 
-        @php($agency = $property->listings->first()?->agency)
+        @php($agency = $property->activeListing()?->agency)
         @if ($agency)
             <p class="text-xs text-gray-400">Listed by {{ $agency->name }}</p>
         @endif
     </div>
-</article>
+</a>

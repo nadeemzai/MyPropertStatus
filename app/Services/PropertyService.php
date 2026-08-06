@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Property;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 
 class PropertyService
@@ -15,6 +16,25 @@ class PropertyService
         return Property::query()
             ->where('status', 'published')
             ->with(['listings.agency', 'media']);
+    }
+
+    /**
+     * Base query for a user's own properties, any status. Callers should
+     * eager-load whichever relations their view actually needs.
+     */
+    public function mine(User $user): Builder
+    {
+        return Property::query()->where('user_id', $user->id);
+    }
+
+    /**
+     * Scope a "mine" query to the Active or Archived dashboard tab.
+     */
+    public function byTab(Builder $query, string $tab): Builder
+    {
+        return $tab === 'archived'
+            ? $query->where('status', 'archived')
+            : $query->where('status', '!=', 'archived');
     }
 
     /**
