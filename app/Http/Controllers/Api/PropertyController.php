@@ -39,7 +39,7 @@ class PropertyController extends Controller
      */
     public function mine(Request $request)
     {
-        $properties = $request->user()->properties()
+        $properties = $this->properties->mine($request->user())
             ->with(['listings.agency', 'media'])
             ->latest()
             ->paginate(10);
@@ -59,6 +59,7 @@ class PropertyController extends Controller
             'currency' => 'nullable|string|max:10',
             'price' => 'nullable|numeric|min:0',
             'location' => 'nullable|string|max:255',
+            'available_from' => 'nullable|date',
             'details' => 'nullable|array',
         ]);
 
@@ -86,6 +87,7 @@ class PropertyController extends Controller
             'price' => 'nullable|numeric|min:0',
             'status' => 'nullable|in:draft,published,archived',
             'location' => 'nullable|string|max:255',
+            'available_from' => 'nullable|date',
             'details' => 'nullable|array',
         ]);
 
