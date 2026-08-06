@@ -28,7 +28,7 @@ class MyListings extends Component
     private function respond(int $listingId, bool $approved): void
     {
         $listings = app(ListingService::class);
-        $listing = $listings->mine(auth()->user())->findOrFail($listingId);
+        $listing = $listings->mine(auth()->user())->with('property')->findOrFail($listingId);
 
         try {
             $approved ? $listings->approve($listing, auth()->user()) : $listings->reject($listing, auth()->user());
