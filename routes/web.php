@@ -1,11 +1,12 @@
 <?php
 
 use App\Livewire\Dashboard;
+use App\Livewire\Public\Browse;
+use App\Livewire\Public\Home;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return ['MyPropertyStatus' => app()->version()];
-});
+Route::get('/', Home::class)->name('home');
+Route::get('/properties', Browse::class)->name('properties.index');
 
 Route::get('/dashboard', Dashboard::class)
     ->middleware('auth')
