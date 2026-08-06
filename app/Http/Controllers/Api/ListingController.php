@@ -10,18 +10,14 @@ use Illuminate\Http\Request;
 
 class ListingController extends Controller
 {
-    public function __construct(private ListingService $listings)
-    {
-    }
+    public function __construct(private ListingService $listings) {}
 
     /**
      * List listings on properties owned by the authenticated user.
      */
     public function index(Request $request)
     {
-        $query = Listing::whereHas('property', function ($q) use ($request) {
-            $q->where('user_id', $request->user()->id);
-        });
+        $query = $this->listings->mine($request->user());
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -86,7 +82,7 @@ class ListingController extends Controller
      */
     public function approve(Request $request, $id)
     {
-        return $this->respond($request, $id, true, 'available');
+        return $this->respond($request, $id, true);
     }
 
     /**
@@ -94,34 +90,20 @@ class ListingController extends Controller
      */
     public function reject(Request $request, $id)
     {
-        return $this->respond($request, $id, false, 'archived');
+        return $this->respond($request, $id, false);
     }
 
-    private function respond(Request $request, $id, bool $approved, string $newStatus)
+    private function respond(Request $request, $id, bool $approved)
     {
         $listing = Listing::with('property')->findOrFail($id);
 
-        if ($listing->property->user_id !== $request->user()->id) {
-            abort(403, 'You do not own the property this listing is for.');
+        try {
+            $listing = $approved
+                ? $this->listings->approve($listing, $request->user())
+                : $this->listings->reject($listing, $request->user());
+        } catch (ListingActionException $e) {
+            return response()->json(['message' => $e->getMessage()], $e->status);
         }
-
-        if (! is_null($listing->user_approved)) {
-            return response()->json(['message' => 'This listing has already been responded to.'], 409);
-        }
-
-        $fromStatus = $listing->status;
-
-        $listing->update([
-            'user_approved' => $approved,
-            'approved_at' => now(),
-            'status' => $newStatus,
-        ]);
-
-        $listing->statusHistories()->create([
-            'from_status' => $fromStatus,
-            'to_status' => $newStatus,
-            'changed_by_user_id' => $request->user()->id,
-        ]);
 
         return response()->json($listing);
     }
