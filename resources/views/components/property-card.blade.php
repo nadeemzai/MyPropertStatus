@@ -44,7 +44,7 @@
             <p class="text-sm text-gray-500">{{ $details->join(' · ') }}</p>
         @endif
 
-        @php($agency = $property->listings->first()?->agency)
+        @php($agency = $property->activeListing()?->agency)
         @if ($agency)
             <p class="text-xs text-gray-400">Listed by {{ $agency->name }}</p>
         @endif
