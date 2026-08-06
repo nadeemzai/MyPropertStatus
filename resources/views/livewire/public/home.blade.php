@@ -1,17 +1,17 @@
 <div class="space-y-16">
-    <section class="rounded-2xl bg-gray-900 px-8 py-16 text-center text-white">
+    <section class="rounded-2xl bg-green-700 px-8 py-16 text-center text-white">
         <h1 class="text-3xl font-bold sm:text-4xl">Find your next property</h1>
-        <p class="mt-3 text-gray-300">Browse verified listings from agencies across the country.</p>
+        <p class="mt-3 text-green-50">Browse verified listings from agencies across the country.</p>
 
         <form method="GET" action="{{ route('properties.index') }}" class="mx-auto mt-8 flex max-w-xl flex-col gap-3 sm:flex-row">
             <input
                 type="text"
                 name="location"
                 placeholder="City or area"
-                class="w-full rounded-md border-0 bg-white px-4 py-2 text-gray-900 shadow-sm focus:ring-2 focus:ring-white sm:flex-1"
+                class="w-full rounded-md border-0 bg-white px-4 py-2 text-gray-900 shadow-sm outline-none focus:ring-2 focus:ring-green-900 sm:flex-1"
             >
 
-            <select name="type" class="w-full rounded-md border-0 bg-white px-4 py-2 text-gray-900 shadow-sm focus:ring-2 focus:ring-white sm:w-40">
+            <select name="type" class="w-full rounded-md border-0 bg-white px-4 py-2 text-gray-900 shadow-sm outline-none focus:ring-2 focus:ring-green-900 sm:w-40">
                 <option value="">Any type</option>
                 <option value="apartment">Apartment</option>
                 <option value="house">House</option>
@@ -19,7 +19,7 @@
                 <option value="commercial">Commercial</option>
             </select>
 
-            <button type="submit" class="rounded-md bg-white px-6 py-2 font-semibold text-gray-900 hover:bg-gray-100">
+            <button type="submit" class="rounded-md bg-white px-6 py-2 font-semibold text-green-700 hover:bg-green-50">
                 Search
             </button>
         </form>
@@ -28,7 +28,7 @@
     <section>
         <div class="mb-6 flex items-center justify-between">
             <h2 class="text-xl font-semibold text-gray-900">Recently listed</h2>
-            <a href="{{ route('properties.index') }}" class="text-sm text-gray-600 hover:text-gray-900">View all &rarr;</a>
+            <a href="{{ route('properties.index') }}" class="text-sm text-gray-600 hover:text-green-700">View all &rarr;</a>
         </div>
 
         @if ($recentProperties->isEmpty())
