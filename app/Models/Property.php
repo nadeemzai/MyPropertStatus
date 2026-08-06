@@ -31,6 +31,19 @@ class Property extends Model
         return $this->hasMany(Listing::class);
     }
 
+    /**
+     * The listing that should represent this property publicly: the most
+     * recently owner-approved one that isn't archived.
+     */
+    public function activeListing(): ?Listing
+    {
+        return $this->listings
+            ->where('user_approved', true)
+            ->whereNotIn('status', ['archived'])
+            ->sortByDesc('approved_at')
+            ->first();
+    }
+
     public function media()
     {
         return $this->hasMany(PropertyMedia::class);
