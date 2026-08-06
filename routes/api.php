@@ -13,18 +13,24 @@ use App\Http\Controllers\Api\PropertyMediaController;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
+// Public browsing — published properties only, no auth required.
+Route::prefix('properties')->group(function () {
+    Route::get('/', [PropertyController::class, 'index']); // list + filters
+    Route::get('/{id}', [PropertyController::class, 'show']); // single property
+    Route::get('/{id}/media', [PropertyMediaController::class, 'index']);
+});
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [AuthController::class, 'profile']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
+    Route::get('/my-properties', [PropertyController::class, 'mine']); // my own, any status
+
     Route::prefix('properties')->group(function () {
-    Route::get('/', [PropertyController::class, 'index']);  // list + filters
-    Route::get('/{id}', [PropertyController::class, 'show']); // single property
     Route::post('/', [PropertyController::class, 'store']); // create
     Route::put('/{id}', [PropertyController::class, 'update']); // update
     Route::delete('/{id}', [PropertyController::class, 'destroy']); // delete
 
-    Route::get('/{id}/media', [PropertyMediaController::class, 'index']);
     Route::post('/{id}/media', [PropertyMediaController::class, 'store']);
     Route::delete('/{id}/media/{mediaId}', [PropertyMediaController::class, 'destroy']);
     });
