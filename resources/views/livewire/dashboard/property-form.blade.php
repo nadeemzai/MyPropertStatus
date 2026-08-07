@@ -10,25 +10,20 @@
 
         <div>
             <x-input-label for="description" value="Description" />
-            <textarea
-                wire:model="description"
-                id="description"
-                rows="4"
-                class="block w-full rounded-md border-gray-300 shadow-sm outline-none focus:border-green-700 focus:ring-2 focus:ring-green-700 sm:text-sm"
-            ></textarea>
+            <x-textarea-input wire:model="description" id="description" rows="4" />
             <x-input-error :messages="$errors->get('description')" class="mt-2" />
         </div>
 
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <x-input-label for="type" value="Type" />
-                <select wire:model="type" id="type" class="block w-full rounded-md border-gray-300 shadow-sm outline-none focus:border-green-700 focus:ring-2 focus:ring-green-700 sm:text-sm">
+                <x-select-input wire:model="type" id="type">
                     <option value="">Select type</option>
                     <option value="apartment">Apartment</option>
                     <option value="house">House</option>
                     <option value="land">Land</option>
                     <option value="commercial">Commercial</option>
-                </select>
+                </x-select-input>
                 <x-input-error :messages="$errors->get('type')" class="mt-2" />
             </div>
 
@@ -82,11 +77,11 @@
         @if ($property)
             <div>
                 <x-input-label for="status" value="Status" />
-                <select wire:model="status" id="status" class="block w-full rounded-md border-gray-300 shadow-sm outline-none focus:border-green-700 focus:ring-2 focus:ring-green-700 sm:text-sm">
+                <x-select-input wire:model="status" id="status">
                     <option value="draft">Draft</option>
                     <option value="published">Published</option>
                     <option value="archived">Archived</option>
-                </select>
+                </x-select-input>
                 <x-input-error :messages="$errors->get('status')" class="mt-2" />
             </div>
         @endif
