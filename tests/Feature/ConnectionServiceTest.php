@@ -134,6 +134,44 @@ test('an owner cannot initiate a connection for a property they do not own', fun
         ->toThrow(ConnectionActionException::class);
 });
 
+test('an owner cannot initiate a second pending connection to the same agency for the same property', function () {
+    $owner = User::factory()->create();
+    $property = Property::factory()->create(['user_id' => $owner->id]);
+    $agency = Agency::factory()->create();
+
+    app(ConnectionService::class)->initiate($owner, $property, $agency, 'First request.');
+
+    expect(fn () => app(ConnectionService::class)->initiate($owner, $property, $agency, 'Second request.'))
+        ->toThrow(ConnectionActionException::class);
+
+    expect(Connection::where('property_id', $property->id)->where('agency_id', $agency->id)->count())->toBe(1);
+});
+
+test('an owner can re-initiate a connection to the same agency once the earlier request is no longer pending', function () {
+    $owner = User::factory()->create();
+    $property = Property::factory()->create(['user_id' => $owner->id]);
+    $agency = Agency::factory()->create();
+
+    $first = app(ConnectionService::class)->initiate($owner, $property, $agency, 'First request.');
+    app(ConnectionService::class)->acceptAsAgency($first, $agency);
+
+    $second = app(ConnectionService::class)->initiate($owner, $property, $agency, 'Second request.');
+
+    expect($second->status)->toBe('pending');
+});
+
+test('an owner can send a pending connection to a different agency for the same property', function () {
+    $owner = User::factory()->create();
+    $property = Property::factory()->create(['user_id' => $owner->id]);
+    $agency = Agency::factory()->create();
+    $otherAgency = Agency::factory()->create();
+
+    app(ConnectionService::class)->initiate($owner, $property, $agency, 'To agency one.');
+    $second = app(ConnectionService::class)->initiate($owner, $property, $otherAgency, 'To agency two.');
+
+    expect($second->status)->toBe('pending');
+});
+
 test('an agency can accept an owner-initiated connection', function () {
     $owner = User::factory()->create();
     $property = Property::factory()->create(['user_id' => $owner->id]);

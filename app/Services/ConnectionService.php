@@ -42,6 +42,19 @@ class ConnectionService
             throw new ConnectionActionException('You do not own this property.', 403);
         }
 
+        $exists = Connection::where('property_id', $property->id)
+            ->where('agency_id', $agency->id)
+            ->where('initiated_by', 'owner')
+            ->where('status', 'pending')
+            ->exists();
+
+        if ($exists) {
+            throw new ConnectionActionException(
+                'You already have a pending connection request to this agency for this property.',
+                409
+            );
+        }
+
         return Connection::create([
             'agency_id' => $agency->id,
             'property_id' => $property->id,
