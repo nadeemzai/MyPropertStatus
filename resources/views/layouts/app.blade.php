@@ -19,6 +19,15 @@
                     <a href="{{ route('dashboard.properties.index') }}" class="text-gray-600 hover:text-green-700">My Properties</a>
                     <a href="{{ route('dashboard.listings.index') }}" class="text-gray-600 hover:text-green-700">My Listings</a>
                     <a href="{{ route('dashboard.connections.index') }}" class="text-gray-600 hover:text-green-700">My Connections</a>
+                    <a href="{{ route('dashboard.notifications.index') }}" class="relative text-gray-600 hover:text-green-700">
+                        Notifications
+                        @php($unreadCount = auth()->user()->notifications()->where('is_read', false)->count())
+                        @if ($unreadCount > 0)
+                            <span class="absolute -right-3 -top-2 rounded-full bg-red-600 px-1.5 py-0.5 text-xs font-semibold text-white">
+                                {{ $unreadCount }}
+                            </span>
+                        @endif
+                    </a>
                     <a href="{{ route('properties.index') }}" class="text-gray-600 hover:text-green-700">Browse properties</a>
 
                     <form method="POST" action="{{ route('logout') }}">
