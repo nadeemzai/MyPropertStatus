@@ -66,6 +66,38 @@ class ListingService
     }
 
     /**
+     * Property owner removes the agency from a listing that was previously approved,
+     * ending the arrangement without deleting the listing's history.
+     */
+    public function removeAgency(Listing $listing, User $user): Listing
+    {
+        if ($listing->property->user_id !== $user->id) {
+            throw new ListingActionException('You do not own the property this listing is for.', 403);
+        }
+
+        if (! $listing->user_approved) {
+            throw new ListingActionException('This listing has not been approved, so there is no agency to remove.', 409);
+        }
+
+        if ($listing->status === 'archived') {
+            throw new ListingActionException('This listing has already been archived.', 409);
+        }
+
+        $fromStatus = $listing->status;
+
+        $listing->update(['status' => 'archived']);
+
+        $listing->statusHistories()->create([
+            'from_status' => $fromStatus,
+            'to_status' => 'archived',
+            'changed_by_user_id' => $user->id,
+            'reason' => 'Agency removed by property owner.',
+        ]);
+
+        return $listing;
+    }
+
+    /**
      * Agency proposes a listing for a property.
      */
     public function propose(Agency $agency, int $propertyId, ?string $agencyNotes = null): Listing
