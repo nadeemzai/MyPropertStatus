@@ -28,6 +28,44 @@ test('a user can upload an avatar via the api', function () {
     expect($user->fresh()->avatar)->not->toBeNull();
 });
 
+test('a user can change their password via the api with the correct current password', function () {
+    $user = User::factory()->create(['password' => Hash::make('old-password')]);
+    Sanctum::actingAs($user);
+
+    $this->putJson('/api/profile', [
+        'current_password' => 'old-password',
+        'password' => 'new-password',
+        'password_confirmation' => 'new-password',
+    ])->assertOk();
+
+    expect(Hash::check('new-password', $user->fresh()->password))->toBeTrue();
+});
+
+test('changing the password via the api fails without the correct current password', function () {
+    $user = User::factory()->create(['password' => Hash::make('old-password')]);
+    Sanctum::actingAs($user);
+
+    $this->putJson('/api/profile', [
+        'current_password' => 'wrong-password',
+        'password' => 'new-password',
+        'password_confirmation' => 'new-password',
+    ])->assertStatus(422);
+
+    expect(Hash::check('old-password', $user->fresh()->password))->toBeTrue();
+});
+
+test('changing the password via the api fails without current_password at all', function () {
+    $user = User::factory()->create(['password' => Hash::make('old-password')]);
+    Sanctum::actingAs($user);
+
+    $this->putJson('/api/profile', [
+        'password' => 'new-password',
+        'password_confirmation' => 'new-password',
+    ])->assertStatus(422);
+
+    expect(Hash::check('old-password', $user->fresh()->password))->toBeTrue();
+});
+
 test('email must be unique when updating profile via the api', function () {
     $user = User::factory()->create();
     User::factory()->create(['email' => 'taken@example.com']);

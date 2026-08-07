@@ -74,13 +74,22 @@ class AuthController extends Controller
             'name' => 'sometimes|required|string|max:255',
             'email' => 'sometimes|required|email|max:255|unique:users,email,'.$user->id,
             'phone' => 'sometimes|required|string|max:255|unique:users,phone,'.$user->id,
+            'current_password' => 'required_with:password|string',
             'password' => 'sometimes|required|string|min:6|confirmed',
             'avatar' => 'sometimes|nullable|image|max:2048',
         ]);
 
         if (isset($validated['password'])) {
+            if (! Hash::check($validated['current_password'], $user->password)) {
+                throw ValidationException::withMessages([
+                    'current_password' => ['The provided password is incorrect.'],
+                ]);
+            }
+
             $validated['password'] = Hash::make($validated['password']);
         }
+
+        unset($validated['current_password']);
 
         if ($request->hasFile('avatar')) {
             if ($user->avatar) {
