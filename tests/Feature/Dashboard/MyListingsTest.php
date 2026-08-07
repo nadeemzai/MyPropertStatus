@@ -100,3 +100,47 @@ test('agency name is shown for each listing', function () {
         ->test(MyListings::class)
         ->assertSee('Best Realtors');
 });
+
+test('an approved listing shows a Remove Agency button', function () {
+    $owner = User::factory()->create();
+    $property = Property::factory()->create(['user_id' => $owner->id]);
+    Listing::factory()->create([
+        'property_id' => $property->id,
+        'status' => 'available',
+        'user_approved' => true,
+    ]);
+
+    Livewire::actingAs($owner)
+        ->test(MyListings::class)
+        ->assertSee('Remove Agency');
+});
+
+test('owner can remove the agency from an approved listing', function () {
+    $owner = User::factory()->create();
+    $property = Property::factory()->create(['user_id' => $owner->id]);
+    $listing = Listing::factory()->create([
+        'property_id' => $property->id,
+        'status' => 'available',
+        'user_approved' => true,
+    ]);
+
+    Livewire::actingAs($owner)
+        ->test(MyListings::class)
+        ->call('removeAgency', $listing->id);
+
+    expect($listing->fresh()->status)->toBe('archived');
+});
+
+test('an archived listing does not show a Remove Agency button', function () {
+    $owner = User::factory()->create();
+    $property = Property::factory()->create(['user_id' => $owner->id]);
+    Listing::factory()->create([
+        'property_id' => $property->id,
+        'status' => 'archived',
+        'user_approved' => false,
+    ]);
+
+    Livewire::actingAs($owner)
+        ->test(MyListings::class)
+        ->assertDontSee('Remove Agency');
+});

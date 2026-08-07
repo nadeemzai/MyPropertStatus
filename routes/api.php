@@ -41,6 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/', [ListingController::class, 'index']); // listings on my properties
     Route::post('/{id}/approve', [ListingController::class, 'approve']);
     Route::post('/{id}/reject', [ListingController::class, 'reject']);
+    Route::post('/{id}/remove-agency', [ListingController::class, 'removeAgency']);
     });
 
     Route::prefix('connections')->group(function () {
