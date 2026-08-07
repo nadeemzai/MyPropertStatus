@@ -25,6 +25,19 @@ class MyListings extends Component
         $this->respond($listingId, false);
     }
 
+    public function removeAgency(int $listingId): void
+    {
+        $listings = app(ListingService::class);
+        $listing = $listings->mine(auth()->user())->with('property')->findOrFail($listingId);
+
+        try {
+            $listings->removeAgency($listing, auth()->user());
+            $this->error = null;
+        } catch (ListingActionException $e) {
+            $this->error = $e->getMessage();
+        }
+    }
+
     private function respond(int $listingId, bool $approved): void
     {
         $listings = app(ListingService::class);

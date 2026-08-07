@@ -51,6 +51,61 @@ test('a listing that has already been responded to cannot be responded to again'
         ->toThrow(ListingActionException::class);
 });
 
+test('owner can remove the agency from an approved listing', function () {
+    $owner = User::factory()->create();
+    $property = Property::factory()->create(['user_id' => $owner->id]);
+    $listing = Listing::factory()->create([
+        'property_id' => $property->id,
+        'status' => 'available',
+        'user_approved' => true,
+    ]);
+
+    $result = app(ListingService::class)->removeAgency($listing, $owner);
+
+    expect($result->status)->toBe('archived');
+    expect($listing->statusHistories()->count())->toBe(1);
+});
+
+test('a non-owner cannot remove the agency from a listing', function () {
+    $owner = User::factory()->create();
+    $intruder = User::factory()->create();
+    $property = Property::factory()->create(['user_id' => $owner->id]);
+    $listing = Listing::factory()->create([
+        'property_id' => $property->id,
+        'status' => 'available',
+        'user_approved' => true,
+    ]);
+
+    expect(fn () => app(ListingService::class)->removeAgency($listing, $intruder))
+        ->toThrow(ListingActionException::class);
+});
+
+test('the agency cannot be removed from a listing that was never approved', function () {
+    $owner = User::factory()->create();
+    $property = Property::factory()->create(['user_id' => $owner->id]);
+    $listing = Listing::factory()->create(['property_id' => $property->id]);
+
+    expect(fn () => app(ListingService::class)->removeAgency($listing, $owner))
+        ->toThrow(ListingActionException::class);
+
+    expect($listing->fresh()->status)->toBe('pending');
+});
+
+test('the agency cannot be removed twice from an already-archived listing', function () {
+    $owner = User::factory()->create();
+    $property = Property::factory()->create(['user_id' => $owner->id]);
+    $listing = Listing::factory()->create([
+        'property_id' => $property->id,
+        'status' => 'available',
+        'user_approved' => true,
+    ]);
+
+    app(ListingService::class)->removeAgency($listing, $owner);
+
+    expect(fn () => app(ListingService::class)->removeAgency($listing->fresh(), $owner))
+        ->toThrow(ListingActionException::class);
+});
+
 test('mine() only returns listings on the given user\'s properties', function () {
     $owner = User::factory()->create();
     $other = User::factory()->create();
