@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Exceptions\ListingActionException;
 use App\Models\Agency;
 use App\Models\Listing;
+use App\Models\Notification;
+use App\Models\Property;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -111,13 +113,26 @@ class ListingService
             );
         }
 
-        return Listing::create([
+        $listing = Listing::create([
             'property_id' => $propertyId,
             'agency_id' => $agency->id,
             'status' => 'pending',
             'agency_proposed' => true,
             'agency_notes' => $agencyNotes,
         ]);
+
+        $property = Property::find($propertyId);
+
+        if ($property) {
+            Notification::create([
+                'user_id' => $property->user_id,
+                'title' => 'New listing proposal',
+                'message' => "{$agency->name} proposed a listing for {$property->title}.",
+                'payload' => ['type' => 'listing_proposed', 'listing_id' => $listing->id],
+            ]);
+        }
+
+        return $listing;
     }
 
     /**

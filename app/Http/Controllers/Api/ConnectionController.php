@@ -6,6 +6,7 @@ use App\Exceptions\ConnectionActionException;
 use App\Http\Controllers\Controller;
 use App\Models\Agency;
 use App\Models\Connection;
+use App\Models\Notification;
 use App\Models\Property;
 use App\Services\ConnectionService;
 use Illuminate\Http\Request;
@@ -56,6 +57,19 @@ class ConnectionController extends Controller
             'expires_at' => $validated['expires_at'] ?? null,
             'status' => 'pending',
         ]);
+
+        if ($connection->property_id) {
+            $property = Property::find($connection->property_id);
+
+            if ($property) {
+                Notification::create([
+                    'user_id' => $property->user_id,
+                    'title' => 'New connection request',
+                    'message' => "{$agency->name} wants to connect about {$property->title}.",
+                    'payload' => ['type' => 'connection_request', 'connection_id' => $connection->id],
+                ]);
+            }
+        }
 
         return response()->json($connection, 201);
     }

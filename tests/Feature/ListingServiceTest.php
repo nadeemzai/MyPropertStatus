@@ -1,7 +1,9 @@
 <?php
 
 use App\Exceptions\ListingActionException;
+use App\Models\Agency;
 use App\Models\Listing;
+use App\Models\Notification;
 use App\Models\Property;
 use App\Models\User;
 use App\Services\ListingService;
@@ -49,6 +51,20 @@ test('a listing that has already been responded to cannot be responded to again'
 
     expect(fn () => app(ListingService::class)->reject($listing->fresh(), $owner))
         ->toThrow(ListingActionException::class);
+});
+
+test('proposing a listing notifies the property owner', function () {
+    $owner = User::factory()->create();
+    $property = Property::factory()->create(['user_id' => $owner->id, 'title' => 'Cozy Cottage']);
+    $agency = Agency::factory()->create(['name' => 'Best Realtors']);
+
+    $listing = app(ListingService::class)->propose($agency, $property->id);
+
+    $notification = Notification::where('user_id', $owner->id)->first();
+
+    expect($notification)->not->toBeNull();
+    expect($notification->payload)->toBe(['type' => 'listing_proposed', 'listing_id' => $listing->id]);
+    expect($notification->message)->toContain('Best Realtors')->toContain('Cozy Cottage');
 });
 
 test('owner can remove the agency from an approved listing', function () {
