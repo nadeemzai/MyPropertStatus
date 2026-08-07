@@ -20,7 +20,7 @@
                     @auth
                         <a href="{{ route('dashboard') }}" class="text-gray-600 hover:text-green-700">Dashboard</a>
 
-                        <form method="POST" action="{{ route('logout') }}">
+                        <form method="POST" action="{{ route('logout') }}" onsubmit="return confirm('Are you sure you want to log out?');">
                             @csrf
                             <button type="submit" class="text-gray-600 hover:text-green-700">Log out</button>
                         </form>

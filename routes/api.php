@@ -22,6 +22,8 @@ Route::prefix('properties')->group(function () {
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [AuthController::class, 'profile']);
+    Route::put('/profile', [AuthController::class, 'updateProfile']);
+    Route::delete('/profile', [AuthController::class, 'destroyAccount']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::get('/my-properties', [PropertyController::class, 'mine']); // my own, any status
