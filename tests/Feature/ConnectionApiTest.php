@@ -1,0 +1,85 @@
+<?php
+
+use App\Models\Connection;
+use App\Models\Property;
+use App\Models\User;
+use Laravel\Sanctum\Sanctum;
+
+test('owner can accept a connection via the api', function () {
+    $owner = User::factory()->create();
+    $property = Property::factory()->create(['user_id' => $owner->id]);
+    $connection = Connection::factory()->create(['property_id' => $property->id]);
+
+    Sanctum::actingAs($owner);
+
+    $this->postJson("/api/connections/{$connection->id}/accept")
+        ->assertOk()
+        ->assertJsonPath('status', 'accepted');
+});
+
+test('owner can reject a connection via the api', function () {
+    $owner = User::factory()->create();
+    $property = Property::factory()->create(['user_id' => $owner->id]);
+    $connection = Connection::factory()->create(['property_id' => $property->id]);
+
+    Sanctum::actingAs($owner);
+
+    $this->postJson("/api/connections/{$connection->id}/reject")
+        ->assertOk()
+        ->assertJsonPath('status', 'rejected');
+});
+
+test('a non-owner cannot accept a connection via the api', function () {
+    $owner = User::factory()->create();
+    $intruder = User::factory()->create();
+    $property = Property::factory()->create(['user_id' => $owner->id]);
+    $connection = Connection::factory()->create(['property_id' => $property->id]);
+
+    Sanctum::actingAs($intruder);
+
+    $this->postJson("/api/connections/{$connection->id}/accept")->assertForbidden();
+});
+
+test('accepting an already-responded connection conflicts', function () {
+    $owner = User::factory()->create();
+    $property = Property::factory()->create(['user_id' => $owner->id]);
+    $connection = Connection::factory()->create(['property_id' => $property->id]);
+
+    Sanctum::actingAs($owner);
+
+    $this->postJson("/api/connections/{$connection->id}/accept")->assertOk();
+    $this->postJson("/api/connections/{$connection->id}/reject")->assertStatus(409);
+});
+
+test('a past-expiry connection cannot be accepted and is marked expired', function () {
+    $owner = User::factory()->create();
+    $property = Property::factory()->create(['user_id' => $owner->id]);
+    $connection = Connection::factory()->create([
+        'property_id' => $property->id,
+        'expires_at' => now()->subHour(),
+    ]);
+
+    Sanctum::actingAs($owner);
+
+    $this->postJson("/api/connections/{$connection->id}/accept")->assertStatus(409);
+
+    expect($connection->fresh()->status)->toBe('expired');
+});
+
+test('index only returns connections on the authenticated user\'s properties', function () {
+    $owner = User::factory()->create();
+    $other = User::factory()->create();
+
+    $ownProperty = Property::factory()->create(['user_id' => $owner->id]);
+    $otherProperty = Property::factory()->create(['user_id' => $other->id]);
+
+    Connection::factory()->create(['property_id' => $ownProperty->id]);
+    Connection::factory()->create(['property_id' => $otherProperty->id]);
+
+    Sanctum::actingAs($owner);
+
+    $response = $this->getJson('/api/connections');
+
+    $response->assertOk();
+    expect($response->json('data'))->toHaveCount(1);
+});
