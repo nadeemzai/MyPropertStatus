@@ -22,6 +22,8 @@ Route::prefix('properties')->group(function () {
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [AuthController::class, 'profile']);
+    Route::put('/profile', [AuthController::class, 'updateProfile']);
+    Route::delete('/profile', [AuthController::class, 'destroyAccount']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::get('/my-properties', [PropertyController::class, 'mine']); // my own, any status
@@ -44,6 +46,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('connections')->group(function () {
     Route::get('/', [ConnectionController::class, 'index']); // connections aimed at my properties
+    Route::post('/', [ConnectionController::class, 'initiate']); // owner initiates a connection to an agency
     Route::post('/{id}/accept', [ConnectionController::class, 'accept']);
     Route::post('/{id}/reject', [ConnectionController::class, 'reject']);
     });
@@ -71,5 +74,7 @@ Route::prefix('agency')->middleware('agency.api_key')->group(function () {
     Route::prefix('connections')->group(function () {
     Route::get('/', [ConnectionController::class, 'indexForAgency']);
     Route::post('/', [ConnectionController::class, 'store']); // initiate a connection
+    Route::post('/{id}/accept', [ConnectionController::class, 'agencyAccept']); // respond to an owner-initiated request
+    Route::post('/{id}/reject', [ConnectionController::class, 'agencyReject']);
     });
 });

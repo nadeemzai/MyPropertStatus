@@ -19,9 +19,11 @@
                     <a href="{{ route('dashboard.properties.index') }}" class="text-gray-600 hover:text-green-700">My Properties</a>
                     <a href="{{ route('dashboard.listings.index') }}" class="text-gray-600 hover:text-green-700">My Listings</a>
                     <a href="{{ route('dashboard.connections.index') }}" class="text-gray-600 hover:text-green-700">My Connections</a>
+                    <a href="{{ route('dashboard.support.index') }}" class="text-gray-600 hover:text-green-700">Support</a>
                     <a href="{{ route('properties.index') }}" class="text-gray-600 hover:text-green-700">Browse properties</a>
+                    <a href="{{ route('dashboard.settings') }}" class="text-gray-600 hover:text-green-700">Settings</a>
 
-                    <form method="POST" action="{{ route('logout') }}">
+                    <form method="POST" action="{{ route('logout') }}" onsubmit="return confirm('Are you sure you want to log out?');">
                         @csrf
                         <button type="submit" class="text-gray-600 hover:text-green-700">Log out</button>
                     </form>
