@@ -5,6 +5,7 @@ use App\Livewire\Dashboard\MyConnections;
 use App\Livewire\Dashboard\MyListings;
 use App\Livewire\Dashboard\MyProperties;
 use App\Livewire\Dashboard\PropertyForm;
+use App\Livewire\Dashboard\ProfileSettings;
 use App\Livewire\Public\Browse;
 use App\Livewire\Public\Home;
 use App\Livewire\Public\Show;
@@ -20,6 +21,7 @@ Route::middleware('auth')->prefix('dashboard')->name('dashboard.')->group(functi
     Route::get('/properties/{id}/edit', PropertyForm::class)->name('properties.edit');
     Route::get('/listings', MyListings::class)->name('listings.index');
     Route::get('/connections', MyConnections::class)->name('connections.index');
+    Route::get('/settings', ProfileSettings::class)->name('settings');
 });
 
 Route::get('/dashboard', Dashboard::class)
