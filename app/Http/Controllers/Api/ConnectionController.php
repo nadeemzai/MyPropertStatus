@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exceptions\ConnectionActionException;
 use App\Http\Controllers\Controller;
 use App\Models\Connection;
+use App\Services\ConnectionService;
 use Illuminate\Http\Request;
 
 class ConnectionController extends Controller
 {
+    public function __construct(private ConnectionService $connections) {}
+
     /**
      * Agency lists the connections it has initiated.
      */
@@ -58,9 +62,7 @@ class ConnectionController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Connection::whereHas('property', function ($q) use ($request) {
-            $q->where('user_id', $request->user()->id);
-        });
+        $query = $this->connections->mine($request->user());
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -73,33 +75,25 @@ class ConnectionController extends Controller
 
     public function accept(Request $request, $id)
     {
-        return $this->respond($request, $id, 'accepted');
+        return $this->respond($request, $id, true);
     }
 
     public function reject(Request $request, $id)
     {
-        return $this->respond($request, $id, 'rejected');
+        return $this->respond($request, $id, false);
     }
 
-    private function respond(Request $request, $id, string $newStatus)
+    private function respond(Request $request, $id, bool $accepted)
     {
         $connection = Connection::with('property')->findOrFail($id);
 
-        if (! $connection->property || $connection->property->user_id !== $request->user()->id) {
-            abort(403, 'You do not own the property this connection is for.');
+        try {
+            $connection = $accepted
+                ? $this->connections->accept($connection, $request->user())
+                : $this->connections->reject($connection, $request->user());
+        } catch (ConnectionActionException $e) {
+            return response()->json(['message' => $e->getMessage()], $e->status);
         }
-
-        if ($connection->expires_at && $connection->expires_at->isPast() && $connection->status === 'pending') {
-            $connection->update(['status' => 'expired']);
-        }
-
-        if ($connection->status !== 'pending') {
-            return response()->json([
-                'message' => "This connection request is no longer pending (status: {$connection->status}).",
-            ], 409);
-        }
-
-        $connection->update(['status' => $newStatus]);
 
         return response()->json($connection);
     }

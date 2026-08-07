@@ -18,6 +18,7 @@
                     <a href="{{ route('dashboard') }}" class="text-gray-600 hover:text-green-700">Dashboard</a>
                     <a href="{{ route('dashboard.properties.index') }}" class="text-gray-600 hover:text-green-700">My Properties</a>
                     <a href="{{ route('dashboard.listings.index') }}" class="text-gray-600 hover:text-green-700">My Listings</a>
+                    <a href="{{ route('dashboard.connections.index') }}" class="text-gray-600 hover:text-green-700">My Connections</a>
                     <a href="{{ route('properties.index') }}" class="text-gray-600 hover:text-green-700">Browse properties</a>
 
                     <form method="POST" action="{{ route('logout') }}">
