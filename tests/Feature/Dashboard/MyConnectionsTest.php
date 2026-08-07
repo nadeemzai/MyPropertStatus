@@ -161,6 +161,28 @@ test('an owner can send a connection request to an agency', function () {
         ->exists())->toBeTrue();
 });
 
+test('an owner cannot send a duplicate pending connection request to the same agency', function () {
+    $owner = User::factory()->create();
+    $property = Property::factory()->create(['user_id' => $owner->id]);
+    $agency = Agency::factory()->create();
+
+    Connection::factory()->create([
+        'property_id' => $property->id,
+        'agency_id' => $agency->id,
+        'initiated_by' => 'owner',
+        'status' => 'pending',
+    ]);
+
+    Livewire::actingAs($owner)
+        ->test(MyConnections::class)
+        ->set('property_id', (string) $property->id)
+        ->set('agency_id', (string) $agency->id)
+        ->call('sendRequest')
+        ->assertSet('formError', 'You already have a pending connection request to this agency for this property.');
+
+    expect(Connection::where('property_id', $property->id)->where('agency_id', $agency->id)->count())->toBe(1);
+});
+
 test('an owner cannot send a connection request for a property they do not own', function () {
     $owner = User::factory()->create();
     $intruder = User::factory()->create();

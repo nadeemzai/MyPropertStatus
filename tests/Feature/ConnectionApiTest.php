@@ -145,6 +145,24 @@ test('an owner cannot initiate a connection for a property they do not own via t
     ])->assertForbidden();
 });
 
+test('an owner cannot initiate a duplicate pending connection via the api', function () {
+    $owner = User::factory()->create();
+    $property = Property::factory()->create(['user_id' => $owner->id]);
+    $agency = Agency::factory()->create();
+
+    Sanctum::actingAs($owner);
+
+    $this->postJson('/api/connections', [
+        'property_id' => $property->id,
+        'agency_id' => $agency->id,
+    ])->assertCreated();
+
+    $this->postJson('/api/connections', [
+        'property_id' => $property->id,
+        'agency_id' => $agency->id,
+    ])->assertStatus(409);
+});
+
 test('an agency can accept an owner-initiated connection via the api', function () {
     $agency = Agency::factory()->create();
     $apiKey = \App\Models\AgencyApiKey::factory()->create(['agency_id' => $agency->id]);
