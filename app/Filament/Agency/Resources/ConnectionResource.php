@@ -5,9 +5,11 @@ namespace App\Filament\Agency\Resources;
 use App\Filament\Agency\Resources\ConnectionResource\Pages;
 use App\Models\Connection;
 use App\Models\Property;
+use App\Services\ConnectionService;
 use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -67,6 +69,11 @@ class ConnectionResource extends Resource
                 Tables\Columns\TextColumn::make('target_phone')
                     ->label('Target Phone')
                     ->placeholder('—'),
+                Tables\Columns\TextColumn::make('initiated_by')
+                    ->label('Requested by')
+                    ->badge()
+                    ->formatStateUsing(fn (string $state) => $state === 'owner' ? 'Owner' : 'Us')
+                    ->color(fn (string $state) => $state === 'owner' ? 'info' : 'gray'),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state) => match ($state) {
@@ -90,9 +97,33 @@ class ConnectionResource extends Resource
                     'rejected' => 'Rejected',
                     'expired' => 'Expired',
                 ]),
+                Tables\Filters\SelectFilter::make('initiated_by')
+                    ->label('Requested by')
+                    ->options([
+                        'owner' => 'Owner',
+                        'agency' => 'Us',
+                    ]),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
+                Tables\Actions\Action::make('accept')
+                    ->visible(fn (Connection $record) => $record->initiated_by === 'owner' && $record->status === 'pending')
+                    ->requiresConfirmation()
+                    ->color('success')
+                    ->action(function (Connection $record) {
+                        app(ConnectionService::class)->acceptAsAgency($record, Filament::auth()->user());
+
+                        Notification::make()->title('Connection accepted')->success()->send();
+                    }),
+                Tables\Actions\Action::make('reject')
+                    ->visible(fn (Connection $record) => $record->initiated_by === 'owner' && $record->status === 'pending')
+                    ->requiresConfirmation()
+                    ->color('danger')
+                    ->action(function (Connection $record) {
+                        app(ConnectionService::class)->rejectAsAgency($record, Filament::auth()->user());
+
+                        Notification::make()->title('Connection rejected')->success()->send();
+                    }),
             ]);
     }
 

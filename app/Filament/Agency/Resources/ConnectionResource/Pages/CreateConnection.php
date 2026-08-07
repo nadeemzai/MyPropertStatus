@@ -13,6 +13,7 @@ class CreateConnection extends CreateRecord
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $data['agency_id'] = Filament::auth()->id();
+        $data['initiated_by'] = 'agency';
         $data['status'] = 'pending';
 
         return $data;
