@@ -53,6 +53,47 @@ test('approving an already-responded listing conflicts', function () {
     $this->postJson("/api/listings/{$listing->id}/reject")->assertStatus(409);
 });
 
+test('owner can remove the agency from an approved listing via the api', function () {
+    $owner = User::factory()->create();
+    $property = Property::factory()->create(['user_id' => $owner->id]);
+    $listing = Listing::factory()->create([
+        'property_id' => $property->id,
+        'status' => 'available',
+        'user_approved' => true,
+    ]);
+
+    Sanctum::actingAs($owner);
+
+    $this->postJson("/api/listings/{$listing->id}/remove-agency")
+        ->assertOk()
+        ->assertJsonPath('status', 'archived');
+});
+
+test('a non-owner cannot remove the agency from a listing via the api', function () {
+    $owner = User::factory()->create();
+    $intruder = User::factory()->create();
+    $property = Property::factory()->create(['user_id' => $owner->id]);
+    $listing = Listing::factory()->create([
+        'property_id' => $property->id,
+        'status' => 'available',
+        'user_approved' => true,
+    ]);
+
+    Sanctum::actingAs($intruder);
+
+    $this->postJson("/api/listings/{$listing->id}/remove-agency")->assertForbidden();
+});
+
+test('removing the agency from a listing that was never approved conflicts via the api', function () {
+    $owner = User::factory()->create();
+    $property = Property::factory()->create(['user_id' => $owner->id]);
+    $listing = Listing::factory()->create(['property_id' => $property->id]);
+
+    Sanctum::actingAs($owner);
+
+    $this->postJson("/api/listings/{$listing->id}/remove-agency")->assertStatus(409);
+});
+
 test('index only returns listings on the authenticated user\'s properties', function () {
     $owner = User::factory()->create();
     $other = User::factory()->create();

@@ -1,6 +1,9 @@
 <?php
 
+use App\Models\Agency;
+use App\Models\AgencyApiKey;
 use App\Models\Connection;
+use App\Models\Notification;
 use App\Models\Property;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
@@ -66,6 +69,33 @@ test('a past-expiry connection cannot be accepted and is marked expired', functi
     expect($connection->fresh()->status)->toBe('expired');
 });
 
+test('an agency initiating a connection on a property notifies its owner', function () {
+    $owner = User::factory()->create();
+    $property = Property::factory()->create(['user_id' => $owner->id, 'title' => 'Cozy Cottage']);
+    $agency = Agency::factory()->create(['name' => 'Best Realtors']);
+    $apiKey = AgencyApiKey::factory()->create(['agency_id' => $agency->id]);
+
+    $response = $this->withHeader('X-Agency-Api-Key', $apiKey->api_key)
+        ->postJson('/api/agency/connections', ['property_id' => $property->id]);
+
+    $response->assertCreated();
+
+    $notification = Notification::where('user_id', $owner->id)->first();
+    expect($notification)->not->toBeNull();
+    expect($notification->payload)->toBe(['type' => 'connection_request', 'connection_id' => $response->json('id')]);
+});
+
+test('an agency initiating a connection to a phone number does not create a notification', function () {
+    $agency = Agency::factory()->create();
+    $apiKey = AgencyApiKey::factory()->create(['agency_id' => $agency->id]);
+
+    $this->withHeader('X-Agency-Api-Key', $apiKey->api_key)
+        ->postJson('/api/agency/connections', ['target_phone' => '555-0100'])
+        ->assertCreated();
+
+    expect(Notification::count())->toBe(0);
+});
+
 test('index only returns connections on the authenticated user\'s properties', function () {
     $owner = User::factory()->create();
     $other = User::factory()->create();
@@ -82,4 +112,67 @@ test('index only returns connections on the authenticated user\'s properties', f
 
     $response->assertOk();
     expect($response->json('data'))->toHaveCount(1);
+});
+
+test('an owner can initiate a connection to an agency via the api', function () {
+    $owner = User::factory()->create();
+    $property = Property::factory()->create(['user_id' => $owner->id]);
+    $agency = Agency::factory()->create();
+
+    Sanctum::actingAs($owner);
+
+    $this->postJson('/api/connections', [
+        'property_id' => $property->id,
+        'agency_id' => $agency->id,
+        'message' => 'Interested in listing.',
+    ])
+        ->assertCreated()
+        ->assertJsonPath('initiated_by', 'owner')
+        ->assertJsonPath('status', 'pending');
+});
+
+test('an owner cannot initiate a connection for a property they do not own via the api', function () {
+    $owner = User::factory()->create();
+    $intruder = User::factory()->create();
+    $property = Property::factory()->create(['user_id' => $owner->id]);
+    $agency = Agency::factory()->create();
+
+    Sanctum::actingAs($intruder);
+
+    $this->postJson('/api/connections', [
+        'property_id' => $property->id,
+        'agency_id' => $agency->id,
+    ])->assertForbidden();
+});
+
+test('an agency can accept an owner-initiated connection via the api', function () {
+    $agency = Agency::factory()->create();
+    $apiKey = \App\Models\AgencyApiKey::factory()->create(['agency_id' => $agency->id]);
+    $property = Property::factory()->create();
+    $connection = Connection::factory()->create([
+        'property_id' => $property->id,
+        'agency_id' => $agency->id,
+        'initiated_by' => 'owner',
+    ]);
+
+    $this->withHeader('X-Agency-Api-Key', $apiKey->api_key)
+        ->postJson("/api/agency/connections/{$connection->id}/accept")
+        ->assertOk()
+        ->assertJsonPath('status', 'accepted');
+});
+
+test('an agency cannot accept another agency\'s owner-initiated connection via the api', function () {
+    $agency = Agency::factory()->create();
+    $intruderAgency = Agency::factory()->create();
+    $apiKey = \App\Models\AgencyApiKey::factory()->create(['agency_id' => $intruderAgency->id]);
+    $property = Property::factory()->create();
+    $connection = Connection::factory()->create([
+        'property_id' => $property->id,
+        'agency_id' => $agency->id,
+        'initiated_by' => 'owner',
+    ]);
+
+    $this->withHeader('X-Agency-Api-Key', $apiKey->api_key)
+        ->postJson("/api/agency/connections/{$connection->id}/accept")
+        ->assertForbidden();
 });

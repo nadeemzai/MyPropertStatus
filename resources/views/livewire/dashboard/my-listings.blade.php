@@ -57,9 +57,18 @@
                                     >
                                         Reject
                                     </button>
+                                @elseif ($listing->user_approved && $listing->status !== 'archived')
+                                    <button
+                                        type="button"
+                                        wire:click="removeAgency({{ $listing->id }})"
+                                        wire:confirm="Remove this agency from the listing? This will archive the listing."
+                                        class="text-red-600 hover:text-red-800"
+                                    >
+                                        Remove Agency
+                                    </button>
                                 @else
                                     <span class="text-gray-400">
-                                        {{ $listing->user_approved ? 'Approved' : 'Rejected' }}
+                                        {{ $listing->user_approved ? 'Archived' : 'Rejected' }}
                                     </span>
                                 @endif
                             </td>

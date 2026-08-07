@@ -93,6 +93,22 @@ class ListingController extends Controller
         return $this->respond($request, $id, false);
     }
 
+    /**
+     * Property owner removes the agency from a previously approved listing.
+     */
+    public function removeAgency(Request $request, $id)
+    {
+        $listing = Listing::with('property')->findOrFail($id);
+
+        try {
+            $listing = $this->listings->removeAgency($listing, $request->user());
+        } catch (ListingActionException $e) {
+            return response()->json(['message' => $e->getMessage()], $e->status);
+        }
+
+        return response()->json($listing);
+    }
+
     private function respond(Request $request, $id, bool $approved)
     {
         $listing = Listing::with('property')->findOrFail($id);
