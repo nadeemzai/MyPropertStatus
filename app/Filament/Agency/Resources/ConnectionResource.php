@@ -2,6 +2,7 @@
 
 namespace App\Filament\Agency\Resources;
 
+use App\Exceptions\ConnectionActionException;
 use App\Filament\Agency\Resources\ConnectionResource\Pages;
 use App\Models\Connection;
 use App\Models\Property;
@@ -111,7 +112,13 @@ class ConnectionResource extends Resource
                     ->requiresConfirmation()
                     ->color('success')
                     ->action(function (Connection $record) {
-                        app(ConnectionService::class)->acceptAsAgency($record, Filament::auth()->user());
+                        try {
+                            app(ConnectionService::class)->acceptAsAgency($record, Filament::auth()->user());
+                        } catch (ConnectionActionException $e) {
+                            Notification::make()->title($e->getMessage())->warning()->send();
+
+                            return;
+                        }
 
                         Notification::make()->title('Connection accepted')->success()->send();
                     }),
@@ -120,7 +127,13 @@ class ConnectionResource extends Resource
                     ->requiresConfirmation()
                     ->color('danger')
                     ->action(function (Connection $record) {
-                        app(ConnectionService::class)->rejectAsAgency($record, Filament::auth()->user());
+                        try {
+                            app(ConnectionService::class)->rejectAsAgency($record, Filament::auth()->user());
+                        } catch (ConnectionActionException $e) {
+                            Notification::make()->title($e->getMessage())->warning()->send();
+
+                            return;
+                        }
 
                         Notification::make()->title('Connection rejected')->success()->send();
                     }),
