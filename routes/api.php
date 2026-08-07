@@ -45,6 +45,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('connections')->group(function () {
     Route::get('/', [ConnectionController::class, 'index']); // connections aimed at my properties
+    Route::post('/', [ConnectionController::class, 'initiate']); // owner initiates a connection to an agency
     Route::post('/{id}/accept', [ConnectionController::class, 'accept']);
     Route::post('/{id}/reject', [ConnectionController::class, 'reject']);
     });
@@ -72,5 +73,7 @@ Route::prefix('agency')->middleware('agency.api_key')->group(function () {
     Route::prefix('connections')->group(function () {
     Route::get('/', [ConnectionController::class, 'indexForAgency']);
     Route::post('/', [ConnectionController::class, 'store']); // initiate a connection
+    Route::post('/{id}/accept', [ConnectionController::class, 'agencyAccept']); // respond to an owner-initiated request
+    Route::post('/{id}/reject', [ConnectionController::class, 'agencyReject']);
     });
 });

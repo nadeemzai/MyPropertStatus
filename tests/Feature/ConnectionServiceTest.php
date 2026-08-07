@@ -1,6 +1,7 @@
 <?php
 
 use App\Exceptions\ConnectionActionException;
+use App\Models\Agency;
 use App\Models\Connection;
 use App\Models\Property;
 use App\Models\User;
@@ -85,4 +86,108 @@ test('mine() only returns connections on the given user\'s properties', function
     Connection::factory()->create(['property_id' => $otherProperty->id]);
 
     expect(app(ConnectionService::class)->mine($owner)->count())->toBe(1);
+});
+
+test('mine() excludes owner-initiated connections', function () {
+    $owner = User::factory()->create();
+    $property = Property::factory()->create(['user_id' => $owner->id]);
+
+    Connection::factory()->create(['property_id' => $property->id, 'initiated_by' => 'owner']);
+    Connection::factory()->create(['property_id' => $property->id, 'initiated_by' => 'agency']);
+
+    expect(app(ConnectionService::class)->mine($owner)->count())->toBe(1);
+});
+
+test('sentByMe() only returns owner-initiated connections on the given user\'s properties', function () {
+    $owner = User::factory()->create();
+    $other = User::factory()->create();
+
+    $ownProperty = Property::factory()->create(['user_id' => $owner->id]);
+    $otherProperty = Property::factory()->create(['user_id' => $other->id]);
+
+    Connection::factory()->create(['property_id' => $ownProperty->id, 'initiated_by' => 'owner']);
+    Connection::factory()->create(['property_id' => $ownProperty->id, 'initiated_by' => 'agency']);
+    Connection::factory()->create(['property_id' => $otherProperty->id, 'initiated_by' => 'owner']);
+
+    expect(app(ConnectionService::class)->sentByMe($owner)->count())->toBe(1);
+});
+
+test('an owner can initiate a connection to an agency', function () {
+    $owner = User::factory()->create();
+    $property = Property::factory()->create(['user_id' => $owner->id]);
+    $agency = Agency::factory()->create();
+
+    $connection = app(ConnectionService::class)->initiate($owner, $property, $agency, 'Interested in listing.');
+
+    expect($connection->status)->toBe('pending');
+    expect($connection->initiated_by)->toBe('owner');
+    expect($connection->agency_id)->toBe($agency->id);
+});
+
+test('an owner cannot initiate a connection for a property they do not own', function () {
+    $owner = User::factory()->create();
+    $intruder = User::factory()->create();
+    $property = Property::factory()->create(['user_id' => $owner->id]);
+    $agency = Agency::factory()->create();
+
+    expect(fn () => app(ConnectionService::class)->initiate($intruder, $property, $agency, null))
+        ->toThrow(ConnectionActionException::class);
+});
+
+test('an agency can accept an owner-initiated connection', function () {
+    $owner = User::factory()->create();
+    $property = Property::factory()->create(['user_id' => $owner->id]);
+    $agency = Agency::factory()->create();
+    $connection = Connection::factory()->create([
+        'property_id' => $property->id,
+        'agency_id' => $agency->id,
+        'initiated_by' => 'owner',
+    ]);
+
+    $result = app(ConnectionService::class)->acceptAsAgency($connection, $agency);
+
+    expect($result->status)->toBe('accepted');
+});
+
+test('an agency can reject an owner-initiated connection', function () {
+    $owner = User::factory()->create();
+    $property = Property::factory()->create(['user_id' => $owner->id]);
+    $agency = Agency::factory()->create();
+    $connection = Connection::factory()->create([
+        'property_id' => $property->id,
+        'agency_id' => $agency->id,
+        'initiated_by' => 'owner',
+    ]);
+
+    $result = app(ConnectionService::class)->rejectAsAgency($connection, $agency);
+
+    expect($result->status)->toBe('rejected');
+});
+
+test('a different agency cannot respond to an owner-initiated connection', function () {
+    $owner = User::factory()->create();
+    $property = Property::factory()->create(['user_id' => $owner->id]);
+    $agency = Agency::factory()->create();
+    $intruderAgency = Agency::factory()->create();
+    $connection = Connection::factory()->create([
+        'property_id' => $property->id,
+        'agency_id' => $agency->id,
+        'initiated_by' => 'owner',
+    ]);
+
+    expect(fn () => app(ConnectionService::class)->acceptAsAgency($connection, $intruderAgency))
+        ->toThrow(ConnectionActionException::class);
+});
+
+test('an agency cannot respond to its own agency-initiated connection via the agency-response methods', function () {
+    $agency = Agency::factory()->create();
+    $property = Property::factory()->create();
+    $connection = Connection::factory()->create([
+        'property_id' => $property->id,
+        'agency_id' => $agency->id,
+        'initiated_by' => 'agency',
+    ]);
+
+    expect(fn () => app(ConnectionService::class)->acceptAsAgency($connection, $agency))
+        ->toThrow(ConnectionActionException::class);
 });
