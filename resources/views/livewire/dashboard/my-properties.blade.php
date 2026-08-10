@@ -1,7 +1,7 @@
 <div class="space-y-6">
     <div class="flex items-center justify-between">
         <h1 class="text-2xl font-semibold text-gray-900">My Properties</h1>
-        <a href="{{ route('dashboard.properties.create') }}" class="rounded-md bg-green-700 px-4 py-2 text-sm font-semibold text-white hover:bg-green-800">
+        <a href="{{ route('dashboard.properties.create') }}" class="rounded-md bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-800">
             Add Property
         </a>
     </div>
@@ -10,14 +10,14 @@
         <button
             type="button"
             wire:click="setTab('active')"
-            class="border-b-2 px-1 py-2 {{ $tab === 'active' ? 'border-green-700 text-green-700' : 'border-transparent text-gray-500 hover:text-gray-700' }}"
+            class="border-b-2 px-1 py-2 {{ $tab === 'active' ? 'border-brand-700 text-brand-700' : 'border-transparent text-gray-500 hover:text-gray-700' }}"
         >
             Active
         </button>
         <button
             type="button"
             wire:click="setTab('archived')"
-            class="border-b-2 px-1 py-2 {{ $tab === 'archived' ? 'border-green-700 text-green-700' : 'border-transparent text-gray-500 hover:text-gray-700' }}"
+            class="border-b-2 px-1 py-2 {{ $tab === 'archived' ? 'border-brand-700 text-brand-700' : 'border-transparent text-gray-500 hover:text-gray-700' }}"
         >
             Archived
         </button>
@@ -50,13 +50,13 @@
                                 <div class="text-gray-500">{{ $property->location }}</div>
                             </td>
                             <td class="px-4 py-3">
-                                <span class="rounded-full px-2 py-0.5 text-xs font-medium {{ match ($property->status) {
-                                    'published' => 'bg-green-50 text-green-700',
-                                    'archived' => 'bg-gray-100 text-gray-600',
-                                    default => 'bg-amber-50 text-amber-700',
-                                } }}">
+                                <x-status-badge :variant="match ($property->status) {
+                                    'published' => 'success',
+                                    'archived' => 'neutral',
+                                    default => 'warning',
+                                }">
                                     {{ ucfirst($property->status) }}
-                                </span>
+                                </x-status-badge>
                             </td>
                             <td class="px-4 py-3">
                                 @if ($property->price)
@@ -66,12 +66,12 @@
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-right">
-                                <a href="{{ route('dashboard.properties.edit', $property->id) }}" class="text-green-700 hover:text-green-800">Edit</a>
+                                <a href="{{ route('dashboard.properties.edit', $property->id) }}" class="text-brand-700 hover:text-brand-800">Edit</a>
                                 <button
                                     type="button"
                                     wire:click="delete({{ $property->id }})"
                                     wire:confirm="Delete this property? This cannot be undone."
-                                    class="ml-3 text-red-600 hover:text-red-800"
+                                    class="ml-3 text-danger-600 hover:text-danger-800"
                                 >
                                     Delete
                                 </button>

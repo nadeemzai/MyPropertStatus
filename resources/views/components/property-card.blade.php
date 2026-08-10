@@ -1,6 +1,6 @@
 @props(['property'])
 
-<a href="{{ route('properties.show', $property->id) }}" class="block overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition hover:border-green-700 hover:shadow-md">
+<a href="{{ route('properties.show', $property->id) }}" class="block overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm transition hover:border-brand-700 hover:shadow-md">
     <div class="aspect-video bg-gray-100">
         @php($image = $property->media->firstWhere('type', 'image'))
         @if ($image)
@@ -17,7 +17,7 @@
             <h3 class="font-semibold text-gray-900">{{ $property->title }}</h3>
 
             @if ($property->type)
-                <span class="shrink-0 rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
+                <span class="shrink-0 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
                     {{ ucfirst($property->type) }}
                 </span>
             @endif

@@ -2,7 +2,7 @@
     <h1 class="text-2xl font-semibold text-gray-900">My Listings</h1>
 
     @if ($error)
-        <div class="rounded-md bg-red-50 p-3 text-sm text-red-700">
+        <div class="rounded-md bg-danger-50 p-3 text-sm text-danger-700">
             {{ $error }}
         </div>
     @endif
@@ -29,15 +29,15 @@
                             </td>
                             <td class="px-4 py-3 text-gray-700">{{ $listing->agency->name }}</td>
                             <td class="px-4 py-3">
-                                <span class="rounded-full px-2 py-0.5 text-xs font-medium {{ match ($listing->status) {
-                                    'available' => 'bg-green-50 text-green-700',
-                                    'pending' => 'bg-amber-50 text-amber-700',
-                                    'rented' => 'bg-red-50 text-red-700',
-                                    'sold' => 'bg-blue-50 text-blue-700',
-                                    default => 'bg-gray-100 text-gray-600',
-                                } }}">
+                                <x-status-badge :variant="match ($listing->status) {
+                                    'available' => 'success',
+                                    'pending' => 'warning',
+                                    'rented' => 'danger',
+                                    'sold' => 'info',
+                                    default => 'neutral',
+                                }">
                                     {{ ucfirst($listing->status) }}
-                                </span>
+                                </x-status-badge>
                             </td>
                             <td class="px-4 py-3 text-right">
                                 @if (is_null($listing->user_approved))
@@ -45,7 +45,7 @@
                                         type="button"
                                         wire:click="approve({{ $listing->id }})"
                                         wire:confirm="Approve this agency's listing request?"
-                                        class="text-green-700 hover:text-green-800"
+                                        class="text-brand-700 hover:text-brand-800"
                                     >
                                         Approve
                                     </button>
@@ -53,7 +53,7 @@
                                         type="button"
                                         wire:click="reject({{ $listing->id }})"
                                         wire:confirm="Reject this agency's listing request?"
-                                        class="ml-3 text-red-600 hover:text-red-800"
+                                        class="ml-3 text-danger-600 hover:text-danger-800"
                                     >
                                         Reject
                                     </button>
@@ -62,7 +62,7 @@
                                         type="button"
                                         wire:click="removeAgency({{ $listing->id }})"
                                         wire:confirm="Remove this agency from the listing? This will archive the listing."
-                                        class="text-red-600 hover:text-red-800"
+                                        class="text-danger-600 hover:text-danger-800"
                                     >
                                         Remove Agency
                                     </button>
