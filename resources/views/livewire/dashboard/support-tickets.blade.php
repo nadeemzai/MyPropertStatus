@@ -2,7 +2,7 @@
     <div class="flex items-center justify-between">
         <h1 class="text-2xl font-semibold text-gray-900">Report a Problem</h1>
 
-        <button type="button" wire:click="$toggle('showForm')" class="rounded-md bg-green-700 px-4 py-2 text-sm font-semibold text-white hover:bg-green-800">
+        <button type="button" wire:click="$toggle('showForm')" class="rounded-md bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-800">
             {{ $showForm ? 'Cancel' : 'New ticket' }}
         </button>
     </div>
@@ -17,11 +17,11 @@
 
             <div>
                 <x-input-label for="message" value="Describe the problem" />
-                <textarea wire:model="message" id="message" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"></textarea>
+                <x-textarea-input wire:model="message" id="message" rows="4" class="mt-1" />
                 <x-input-error :messages="$errors->get('message')" class="mt-2" />
             </div>
 
-            <button type="submit" class="rounded-md bg-green-700 px-6 py-2 text-sm font-semibold text-white hover:bg-green-800">
+            <button type="submit" class="rounded-md bg-brand-700 px-6 py-2 text-sm font-semibold text-white hover:bg-brand-800">
                 Submit ticket
             </button>
         </form>
@@ -47,15 +47,15 @@
                                 <div class="text-gray-500">{{ \Illuminate\Support\Str::limit($ticket->message, 80) }}</div>
                             </td>
                             <td class="px-4 py-3">
-                                <span class="rounded-full px-2 py-0.5 text-xs font-medium {{ match ($ticket->status) {
-                                    'open' => 'bg-amber-50 text-amber-700',
-                                    'in_progress' => 'bg-blue-50 text-blue-700',
-                                    'resolved' => 'bg-green-50 text-green-700',
-                                    'closed' => 'bg-gray-100 text-gray-600',
-                                    default => 'bg-gray-100 text-gray-600',
-                                } }}">
+                                <x-status-badge :variant="match ($ticket->status) {
+                                    'open' => 'warning',
+                                    'in_progress' => 'info',
+                                    'resolved' => 'success',
+                                    'closed' => 'neutral',
+                                    default => 'neutral',
+                                }">
                                     {{ ucfirst(str_replace('_', ' ', $ticket->status)) }}
-                                </span>
+                                </x-status-badge>
                             </td>
                             <td class="px-4 py-3 text-gray-500">{{ $ticket->created_at->format('M j, Y') }}</td>
                         </tr>

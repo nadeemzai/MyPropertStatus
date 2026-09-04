@@ -2,13 +2,13 @@
     <div class="flex items-center justify-between">
         <h1 class="text-2xl font-semibold text-gray-900">My Connections</h1>
 
-        <button type="button" wire:click="$toggle('showForm')" class="rounded-md bg-green-700 px-4 py-2 text-sm font-semibold text-white hover:bg-green-800">
+        <button type="button" wire:click="$toggle('showForm')" class="rounded-md bg-brand-700 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-800">
             {{ $showForm ? 'Cancel' : 'Connect with an agency' }}
         </button>
     </div>
 
     @if ($error)
-        <div class="rounded-md bg-red-50 p-3 text-sm text-red-700">
+        <div class="rounded-md bg-danger-50 p-3 text-sm text-danger-700">
             {{ $error }}
         </div>
     @endif
@@ -16,38 +16,38 @@
     @if ($showForm)
         <form wire:submit="sendRequest" class="space-y-4 rounded-lg border border-gray-200 bg-white p-6">
             @if ($formError)
-                <div class="rounded-md bg-red-50 p-3 text-sm text-red-700">{{ $formError }}</div>
+                <div class="rounded-md bg-danger-50 p-3 text-sm text-danger-700">{{ $formError }}</div>
             @endif
 
             <div>
                 <x-input-label for="property_id" value="Property" />
-                <select wire:model="property_id" id="property_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500">
+                <x-select-input wire:model="property_id" id="property_id" class="mt-1">
                     <option value="">Select a property&hellip;</option>
                     @foreach ($properties as $property)
                         <option value="{{ $property->id }}">{{ $property->title }}</option>
                     @endforeach
-                </select>
+                </x-select-input>
                 <x-input-error :messages="$errors->get('property_id')" class="mt-2" />
             </div>
 
             <div>
                 <x-input-label for="agency_id" value="Agency" />
-                <select wire:model="agency_id" id="agency_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500">
+                <x-select-input wire:model="agency_id" id="agency_id" class="mt-1">
                     <option value="">Select an agency&hellip;</option>
                     @foreach ($agencies as $agency)
                         <option value="{{ $agency->id }}">{{ $agency->name }}</option>
                     @endforeach
-                </select>
+                </x-select-input>
                 <x-input-error :messages="$errors->get('agency_id')" class="mt-2" />
             </div>
 
             <div>
                 <x-input-label for="message" value="Message (optional)" />
-                <textarea wire:model="message" id="message" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500"></textarea>
+                <x-textarea-input wire:model="message" id="message" rows="3" class="mt-1" />
                 <x-input-error :messages="$errors->get('message')" class="mt-2" />
             </div>
 
-            <button type="submit" class="rounded-md bg-green-700 px-6 py-2 text-sm font-semibold text-white hover:bg-green-800">
+            <button type="submit" class="rounded-md bg-brand-700 px-6 py-2 text-sm font-semibold text-white hover:bg-brand-800">
                 Send request
             </button>
         </form>
@@ -57,14 +57,14 @@
         <button
             type="button"
             wire:click="setTab('received')"
-            class="border-b-2 px-1 py-2 {{ $tab === 'received' ? 'border-green-700 text-green-700' : 'border-transparent text-gray-500 hover:text-gray-700' }}"
+            class="border-b-2 px-1 py-2 {{ $tab === 'received' ? 'border-brand-700 text-brand-700' : 'border-transparent text-gray-500 hover:text-gray-700' }}"
         >
             From Agencies
         </button>
         <button
             type="button"
             wire:click="setTab('sent')"
-            class="border-b-2 px-1 py-2 {{ $tab === 'sent' ? 'border-green-700 text-green-700' : 'border-transparent text-gray-500 hover:text-gray-700' }}"
+            class="border-b-2 px-1 py-2 {{ $tab === 'sent' ? 'border-brand-700 text-brand-700' : 'border-transparent text-gray-500 hover:text-gray-700' }}"
         >
             Sent by Me
         </button>
@@ -91,14 +91,14 @@
                             </div>
                         </div>
 
-                        <span class="shrink-0 rounded-full px-2 py-0.5 text-xs font-medium {{ match ($connection->status) {
-                            'accepted' => 'bg-green-50 text-green-700',
-                            'pending' => 'bg-amber-50 text-amber-700',
-                            'rejected' => 'bg-red-50 text-red-700',
-                            default => 'bg-gray-100 text-gray-600',
-                        } }}">
+                        <x-status-badge class="shrink-0" :variant="match ($connection->status) {
+                            'accepted' => 'success',
+                            'pending' => 'warning',
+                            'rejected' => 'danger',
+                            default => 'neutral',
+                        }">
                             {{ ucfirst($connection->status) }}
-                        </span>
+                        </x-status-badge>
                     </div>
 
                     @if ($connection->message)
@@ -111,7 +111,7 @@
                                 type="button"
                                 wire:click="accept({{ $connection->id }})"
                                 wire:confirm="Accept this agency's connection request?"
-                                class="text-green-700 hover:text-green-800"
+                                class="text-brand-700 hover:text-brand-800"
                             >
                                 Accept
                             </button>
@@ -119,7 +119,7 @@
                                 type="button"
                                 wire:click="reject({{ $connection->id }})"
                                 wire:confirm="Reject this agency's connection request?"
-                                class="ml-3 text-red-600 hover:text-red-800"
+                                class="ml-3 text-danger-600 hover:text-danger-800"
                             >
                                 Reject
                             </button>
